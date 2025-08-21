@@ -132,6 +132,7 @@
                                 <button id="copy-journal" class="copy-btn">복사</button>
                             </div>
                             <textarea id="journal-entry" rows="4" class="w-full p-3 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" placeholder="인상깊은 문장이나 느낌, 요약 등을 자유롭게 작성하세요."></textarea>
+                            <div id="journal-char-count" class="text-right text-sm text-gray-500 mt-1">0 / 200</div>
                         </div>
                     </div>
                 </div>
@@ -144,10 +145,11 @@
                     </div>
                     <div class="mb-4">
                         <div class="flex justify-between items-center mb-1">
-                            <label for="review-text" class="block text-sm font-medium text-gray-700">리뷰 작성 (250자 이내)</label>
+                            <label for="review-text" class="block text-sm font-medium text-gray-700">리뷰 작성 (300자 이내)</label>
                             <button id="copy-review" class="copy-btn">복사</button>
                         </div>
-                        <textarea id="review-text" rows="8" class="w-full p-3 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" placeholder="인상깊은 문장이나 느낌, 요약 등을 250자 이내로 자유롭게 작성하세요."></textarea>
+                        <textarea id="review-text" rows="8" class="w-full p-3 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" placeholder="인상깊은 문장이나 느낌, 요약 등을 300자 이내로 자유롭게 작성하세요."></textarea>
+                        <div id="review-char-count" class="text-right text-sm text-gray-500 mt-1">0 / 300</div>
                     </div>
                 </div>
 
@@ -159,6 +161,7 @@
                             <button id="copy-summary" class="copy-btn">복사</button>
                         </div>
                         <textarea id="summary-text" rows="15" class="w-full p-3 border border-gray-300 rounded-md bg-gray-50 focus:ring-emerald-500 focus:border-emerald-500" placeholder="AI가 생성한 책의 주요 내용 요약이 여기에 표시됩니다."></textarea>
+                        <div id="summary-char-count" class="text-right text-sm text-gray-500 mt-1">0 / 6000</div>
                     </div>
                 </div>
             </div>
@@ -195,6 +198,10 @@
         const keywordContainer = document.getElementById('keyword-container');
         const reviewTextEl = document.getElementById('review-text');
         const summaryTextEl = document.getElementById('summary-text');
+        
+        const journalCharCountEl = document.getElementById('journal-char-count');
+        const reviewCharCountEl = document.getElementById('review-char-count');
+        const summaryCharCountEl = document.getElementById('summary-char-count');
 
         const copyJournalBtn = document.getElementById('copy-journal');
         const copyReviewBtn = document.getElementById('copy-review');
@@ -224,6 +231,11 @@
         copyJournalBtn.addEventListener('click', () => copyContent('journal-entry', 'copy-journal'));
         copyReviewBtn.addEventListener('click', () => copyContent('review-text', 'copy-review'));
         copySummaryBtn.addEventListener('click', () => copyContent('summary-text', 'copy-summary'));
+        
+        journalEntryEl.addEventListener('input', () => updateCharCount(journalEntryEl, journalCharCountEl, 200));
+        reviewTextEl.addEventListener('input', () => updateCharCount(reviewTextEl, reviewCharCountEl, 300));
+        summaryTextEl.addEventListener('input', () => updateCharCount(summaryTextEl, summaryCharCountEl, 6000));
+
 
         // --- Functions ---
         
@@ -256,6 +268,9 @@
             dateDisplayText.classList.add('text-gray-500');
             dateDisplayText.classList.remove('text-gray-900');
             readDateEl.value = '';
+            updateCharCount(journalEntryEl, journalCharCountEl, 200);
+            updateCharCount(reviewTextEl, reviewCharCountEl, 300);
+            updateCharCount(summaryTextEl, summaryCharCountEl, 6000);
         }
 
         function cleanJsonString(rawString) {
@@ -277,7 +292,7 @@
 3. "summary": 책의 핵심 내용을 6000자 내외로, 결론부터 서술하는 두괄식으로, 알아보기 쉽게 정리해서 요약해줘. (string)
 4. "journal": 책을 읽고 난 후의 인상적인 느낌이나 감상 (200자 이내, string)
 5. "keywords": 책의 주제, 분위기, 장르를 나타내는 '#키워드' 형식의 키워드 5개 (array of strings, e.g., ["#감동적인", "#성장"])
-6. "review": 책 리뷰 (250자 내외, string)
+6. "review": 책 리뷰 (300자 내외로, 가독성 있게 두괄식으로 작성, string)
 7. "pages": 책의 전체 페이지 수 (number)
 
 JSON 형식만 응답하고 다른 설명은 추가하지 마.`;
@@ -303,6 +318,10 @@ JSON 형식만 응답하고 다른 설명은 추가하지 마.`;
                     });
                 }
                 
+                updateCharCount(journalEntryEl, journalCharCountEl, 200);
+                updateCharCount(reviewTextEl, reviewCharCountEl, 300);
+                updateCharCount(summaryTextEl, summaryCharCountEl, 6000);
+
                 loaderContainer.classList.add('hidden');
                 loaderContainer.classList.remove('flex');
                 contentContainer.classList.remove('hidden');
@@ -371,10 +390,10 @@ JSON 형식만 응답하고 다른 설명은 추가하지 마.`;
 
         function copyContent(elementId, buttonId) {
             const textArea = document.getElementById(elementId);
-            if (!textArea.value) return; // Don't copy if empty
+            if (!textArea.value) return; 
 
             textArea.select();
-            textArea.setSelectionRange(0, 99999); // For mobile devices
+            textArea.setSelectionRange(0, 99999); 
             
             try {
                 const successful = document.execCommand('copy');
@@ -391,7 +410,12 @@ JSON 형식만 응답하고 다른 설명은 추가하지 마.`;
                 console.error('Failed to copy text: ', err);
             }
 
-            window.getSelection().removeAllRanges(); // Deselect
+            window.getSelection().removeAllRanges();
+        }
+        
+        function updateCharCount(textAreaElement, countElement, maxLength) {
+            const currentLength = textAreaElement.value.length;
+            countElement.textContent = `${currentLength} / ${maxLength}`;
         }
     </script>
 </body>
