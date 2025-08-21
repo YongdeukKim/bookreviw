@@ -47,6 +47,24 @@
         textarea {
             resize: none;
         }
+        .copy-btn {
+            background-color: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.375rem;
+            padding: 0.25rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #4b5563;
+            transition: background-color 0.2s;
+        }
+        .copy-btn:hover {
+            background-color: #e5e7eb;
+        }
+        .copy-btn.copied {
+            background-color: #10B981;
+            color: white;
+            border-color: #10B981;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
@@ -91,17 +109,12 @@
                         <div>
                             <label for="read-date" class="block text-sm font-medium text-gray-700 mb-1">독서일자</label>
                             <div class="relative">
-                                <!-- This is the visible part -->
                                 <div class="w-full p-2 pl-3 pr-10 text-left border border-gray-300 rounded-md cursor-pointer bg-white">
                                     <span id="date-display-text" class="text-gray-500">날짜를 선택하세요</span>
                                 </div>
-                                <!-- Calendar Icon -->
                                 <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                    </svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
                                 </div>
-                                <!-- The actual, hidden date input -->
                                 <input type="date" id="read-date" class="absolute top-0 left-0 w-full h-full opacity-0 cursor-pointer">
                             </div>
                         </div>
@@ -114,7 +127,10 @@
                             </div>
                         </div>
                          <div>
-                            <label for="journal-entry" class="block text-sm font-medium text-gray-700 mb-1">일지 작성 (200자 이내)</label>
+                             <div class="flex justify-between items-center mb-1">
+                                <label for="journal-entry" class="block text-sm font-medium text-gray-700">일지 작성 (200자 이내)</label>
+                                <button id="copy-journal" class="copy-btn">복사</button>
+                            </div>
                             <textarea id="journal-entry" rows="4" class="w-full p-3 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" placeholder="인상깊은 문장이나 느낌, 요약 등을 자유롭게 작성하세요."></textarea>
                         </div>
                     </div>
@@ -124,20 +140,24 @@
                 <div id="review-content" class="hidden">
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-1">후기 키워드 (최대 5개)</label>
-                        <div id="keyword-container" class="flex flex-wrap">
-                            <!-- Keywords will be injected here -->
-                        </div>
+                        <div id="keyword-container" class="flex flex-wrap"></div>
                     </div>
                     <div class="mb-4">
-                        <label for="review-text" class="block text-sm font-medium text-gray-700 mb-1">리뷰 작성 (500자 이내)</label>
-                        <textarea id="review-text" rows="8" class="w-full p-3 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" placeholder="인상깊은 문장이나 느낌, 요약 등을 500자 이내로 자유롭게 작성하세요."></textarea>
+                        <div class="flex justify-between items-center mb-1">
+                            <label for="review-text" class="block text-sm font-medium text-gray-700">리뷰 작성 (250자 이내)</label>
+                            <button id="copy-review" class="copy-btn">복사</button>
+                        </div>
+                        <textarea id="review-text" rows="8" class="w-full p-3 border border-gray-300 rounded-md focus:ring-emerald-500 focus:border-emerald-500" placeholder="인상깊은 문장이나 느낌, 요약 등을 250자 이내로 자유롭게 작성하세요."></textarea>
                     </div>
                 </div>
 
                 <!-- Summary Content -->
                 <div id="summary-content" class="hidden">
                      <div class="mb-4">
-                        <label for="summary-text" class="block text-sm font-medium text-gray-700 mb-1">AI 책 요약 (6000자 내외)</label>
+                        <div class="flex justify-between items-center mb-1">
+                            <label for="summary-text" class="block text-sm font-medium text-gray-700">AI 책 요약 (6000자 내외)</label>
+                            <button id="copy-summary" class="copy-btn">복사</button>
+                        </div>
                         <textarea id="summary-text" rows="15" class="w-full p-3 border border-gray-300 rounded-md bg-gray-50 focus:ring-emerald-500 focus:border-emerald-500" placeholder="AI가 생성한 책의 주요 내용 요약이 여기에 표시됩니다."></textarea>
                     </div>
                 </div>
@@ -176,6 +196,10 @@
         const reviewTextEl = document.getElementById('review-text');
         const summaryTextEl = document.getElementById('summary-text');
 
+        const copyJournalBtn = document.getElementById('copy-journal');
+        const copyReviewBtn = document.getElementById('copy-review');
+        const copySummaryBtn = document.getElementById('copy-summary');
+
         // --- Event Listeners ---
         imagePreviewContainer.addEventListener('click', () => imageUpload.click());
         imageUpload.addEventListener('change', handleImageUpload);
@@ -197,11 +221,12 @@
             }
         });
 
+        copyJournalBtn.addEventListener('click', () => copyContent('journal-entry', 'copy-journal'));
+        copyReviewBtn.addEventListener('click', () => copyContent('review-text', 'copy-review'));
+        copySummaryBtn.addEventListener('click', () => copyContent('summary-text', 'copy-summary'));
+
         // --- Functions ---
         
-        /**
-         * Handles the image upload event.
-         */
         function handleImageUpload(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -216,9 +241,6 @@
             reader.readAsDataURL(file);
         }
 
-        /**
-         * Resets the UI to its initial state.
-         */
         function resetUI() {
             loaderContainer.classList.remove('hidden');
             loaderContainer.classList.add('flex');
@@ -230,16 +252,12 @@
             keywordContainer.innerHTML = '';
             reviewTextEl.value = '';
             summaryTextEl.value = '';
-            // Reset date display
             dateDisplayText.textContent = '날짜를 선택하세요';
             dateDisplayText.classList.add('text-gray-500');
             dateDisplayText.classList.remove('text-gray-900');
             readDateEl.value = '';
         }
 
-        /**
-         * Cleans a JSON string that might be wrapped in markdown code blocks.
-         */
         function cleanJsonString(rawString) {
             let cleanedString = rawString.trim();
             if (cleanedString.startsWith("```json")) {
@@ -250,9 +268,6 @@
             return cleanedString;
         }
 
-        /**
-         * Main function to call Gemini API and populate the template.
-         */
         async function generateBookData(base64ImageData) {
             const base64Data = base64ImageData.split(',')[1];
             
@@ -262,7 +277,7 @@
 3. "summary": 책의 핵심 내용을 6000자 내외로, 결론부터 서술하는 두괄식으로, 알아보기 쉽게 정리해서 요약해줘. (string)
 4. "journal": 책을 읽고 난 후의 인상적인 느낌이나 감상 (200자 이내, string)
 5. "keywords": 책의 주제, 분위기, 장르를 나타내는 '#키워드' 형식의 키워드 5개 (array of strings, e.g., ["#감동적인", "#성장"])
-6. "review": 책 리뷰 (500자 내외, string)
+6. "review": 책 리뷰 (250자 내외, string)
 7. "pages": 책의 전체 페이지 수 (number)
 
 JSON 형식만 응답하고 다른 설명은 추가하지 마.`;
@@ -291,7 +306,7 @@ JSON 형식만 응답하고 다른 설명은 추가하지 마.`;
                 loaderContainer.classList.add('hidden');
                 loaderContainer.classList.remove('flex');
                 contentContainer.classList.remove('hidden');
-                switchTab('log'); // Reset to the first tab
+                switchTab('log');
 
             } catch (error) {
                 console.error("Error generating book data:", error);
@@ -301,11 +316,8 @@ JSON 형식만 응답하고 다른 설명은 추가하지 마.`;
             }
         }
 
-        /**
-         * Calls the Gemini API with a given prompt and optional image data.
-         */
         async function callGeminiAPI(prompt, base64ImageData = null) {
-            const apiKey = ""; // API 키가 필요 없는 환경입니다.
+            const apiKey = "AIzaSyAywSLfRqIcj919S2wYNq4aky31Hz90yKQ";
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
             
             let parts = [{ text: prompt }];
@@ -345,9 +357,6 @@ JSON 형식만 응답하고 다른 설명은 추가하지 마.`;
             }
         }
 
-        /**
-         * Switches between the tabs.
-         */
         function switchTab(tabName) {
             const tabs = { log: tabLog, review: tabReview, summary: tabSummary };
             const contents = { log: logContent, review: reviewContent, summary: summaryContent };
@@ -358,6 +367,31 @@ JSON 형식만 응답하고 다른 설명은 추가하지 마.`;
                 tabs[name].classList.toggle('tab-inactive', !isActive);
                 contents[name].classList.toggle('hidden', !isActive);
             }
+        }
+
+        function copyContent(elementId, buttonId) {
+            const textArea = document.getElementById(elementId);
+            if (!textArea.value) return; // Don't copy if empty
+
+            textArea.select();
+            textArea.setSelectionRange(0, 99999); // For mobile devices
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    const button = document.getElementById(buttonId);
+                    button.textContent = '복사 완료!';
+                    button.classList.add('copied');
+                    setTimeout(() => {
+                        button.textContent = '복사';
+                        button.classList.remove('copied');
+                    }, 1500);
+                }
+            } catch (err) {
+                console.error('Failed to copy text: ', err);
+            }
+
+            window.getSelection().removeAllRanges(); // Deselect
         }
     </script>
 </body>
